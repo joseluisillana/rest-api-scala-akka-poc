@@ -52,8 +52,13 @@ trait RestApi extends HttpService with ActorLogging {
                   }
                 }*/
                   //complete(Sender("eltopic", "elmensaje"))
-                  entity(as[StructuredLog]) { structuredLog =>
-                    complete(Sender(topicName, structuredLog.messageValue))
+                  entity(as[StructuredLog]) { structuredLog => requestContext =>
+                    val responderActor = createResponder(requestContext)
+                    sendMessageToKafka(Sender(topicName, structuredLog.messageValue)) match {
+                      case true => responderActor ! SenderResponseOK
+                      case _ => sender ! SenderResponseKO
+                    }
+                    //complete(Sender(topicName, structuredLog.messageValue))
                   }
                 }
               }
@@ -77,6 +82,7 @@ trait RestApi extends HttpService with ActorLogging {
       private def sendMessageToKafka(sender: Sender): Boolean =
       {
         val result = true
+        System.out.println(s"MIKE data ingested: ${sender.topicName} and the messege is ${sender.messageValue}")
         result
       }
 
@@ -100,7 +106,7 @@ trait RestApi extends HttpService with ActorLogging {
         requestContext.complete(StatusCodes.NoContent)
         killYourself
       case SenderResponseKO =>
-        requestContext.complete(StatusCodes.BadGateway)
+        requestContext.complete(StatusCodes.InternalServerError)
         killYourself
     }
 
