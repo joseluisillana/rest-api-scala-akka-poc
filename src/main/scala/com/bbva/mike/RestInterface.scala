@@ -4,8 +4,9 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 
 import akka.actor._
-import com.bbva.mike.KafkaProducerProtocol.StructuredLog
+import com.bbva.mike.KafkaProducerProtocol.{Sender, StructuredLog}
 import spray.http.StatusCodes
+
 import spray.routing._
 
 import scala.language.postfixOps
@@ -24,6 +25,7 @@ trait RestApi extends HttpService with ActorLogging {
 
   import com.bbva.mike.HealthCheckProtocol._
   import com.bbva.mike.KafkaProducerProtocol._
+  import com.bbva.mike.ResponseProtocol._
   import spray.http.MediaTypes
   import spray.httpx.SprayJsonSupport._
 
@@ -44,21 +46,10 @@ trait RestApi extends HttpService with ActorLogging {
             pathEnd {
               respondWithMediaType(MediaTypes.`application/json`) {
                 post {
-                  /*entity(as[Sender]) { sender => requestContext =>
-                  val responder = createResponder(requestContext)
-                  sendMessageToKafka(sender) match {
-                    case true => sender ! SenderResponseOK
-                    case _ => sender ! SenderResponseKO
-                  }
-                }*/
-                  //complete(Sender("eltopic", "elmensaje"))
                   entity(as[StructuredLog]) { structuredLog => requestContext =>
-                    val responderActor = createResponder(requestContext)
-                    sendMessageToKafka(Sender(topicName, structuredLog.messageValue)) match {
-                      case true => responderActor ! SenderResponseOK
-                      case _ => sender ! SenderResponseKO
-                    }
-                    //complete(Sender(topicName, structuredLog.messageValue))
+                    val kafkaWriter = createKafkaWriter(Sender(topicName, structuredLog.messageValue))
+                    kafkaWriter ! SendToKafka
+                    requestContext.complete(ResponseData(StatusCodes.NoContent.toString(), "MIKE - Received "))
                   }
                 }
               }
@@ -66,51 +57,78 @@ trait RestApi extends HttpService with ActorLogging {
           }
           }
 
-            /*
-            System.out.println(topic)
-            requestContext.complete(StatusCodes.BadGateway)
-            */
-          }
+          /*
+          System.out.println(topic)
+          requestContext.complete(StatusCodes.BadGateway)
+          */
         }
-
-
-      private def createResponder(requestContext: RequestContext) =
-      {
-        context.actorOf(Props(new Responder(requestContext)))
-      }
-
-      private def sendMessageToKafka(sender: Sender): Boolean =
-      {
-        val result = true
-        System.out.println(s"MIKE data ingested: ${sender.topicName} and the messege is ${sender.messageValue}")
-        result
-      }
-
-      private def getCurrentHour: String =
-      {
-        val today = Calendar.getInstance().getTime()
-        val dateFormat = new SimpleDateFormat("dd-M-yyyy hh:mm:ss")
-        return dateFormat.format(today)
-      }
-
-
     }
 
-  class Responder(requestContext: RequestContext) extends Actor with ActorLogging {
 
-    import com.bbva.mike.KafkaProducerProtocol._
-
-    def receive = {
-
-      case SenderResponseOK =>
-        requestContext.complete(StatusCodes.NoContent)
-        killYourself
-      case SenderResponseKO =>
-        requestContext.complete(StatusCodes.InternalServerError)
-        killYourself
-    }
-
-    private def killYourself = self ! PoisonPill
-
+  private def createResponder(requestContext: RequestContext) = {
+    context.actorOf(Props(new Responder(requestContext)))
   }
+
+  private def createKafkaWriter(sender: Sender) = {
+    context.actorOf(Props(new KafkaWriter(sender)))
+  }
+
+
+  private def getCurrentHour: String = {
+    val today = Calendar.getInstance().getTime()
+    val dateFormat = new SimpleDateFormat("dd-M-yyyy hh:mm:ss")
+    return dateFormat.format(today)
+  }
+
+
+}
+
+class Responder(requestContext: RequestContext) extends Actor with ActorLogging {
+
+  import com.bbva.mike.KafkaProducerProtocol._
+
+  def receive = {
+
+    case SenderResponseOK =>
+      requestContext.complete(StatusCodes.NoContent)
+      killYourself
+    case SenderResponseKO =>
+      requestContext.complete(StatusCodes.InternalServerError)
+      killYourself
+  }
+
+  private def killYourself = self ! PoisonPill
+
+}
+
+class KafkaWriter(sender: Sender) extends Actor with ActorLogging {
+
+  import com.bbva.mike.KafkaProducerProtocol._
+
+  def receive = {
+
+    case SendToKafka =>
+      // Do something
+      sendMessageToKafka(sender) match {
+        case true => self ! KillActor
+        case _ => self ! KillActor
+      }
+    case KillActor =>
+      killYourself
+  }
+
+  private def killYourself = self ! PoisonPill
+
+  private def sendMessageToKafka(sender: Sender): Boolean = {
+    val result = true
+    val max = 10000L
+    var i = 0
+    while (i < max) {
+      System.out.println(s"MIKE PET NUM ${i} of ${max} data ingested: ${sender.topicName} and the messege is ${sender.messageValue}")
+      i = i + 1
+    }
+    result
+  }
+
+}
 

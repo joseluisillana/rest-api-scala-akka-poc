@@ -15,6 +15,10 @@ object KafkaProducerProtocol {
 
   case object SenderResponseKO
 
+  case object SendToKafka
+
+  case object KillActor
+
 
   /* json (un)marshalling */
 
