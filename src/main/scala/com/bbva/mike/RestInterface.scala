@@ -1,5 +1,8 @@
 package com.bbva.mike
 
+import java.text.SimpleDateFormat
+import java.util.Calendar
+
 import akka.actor._
 import spray.http.StatusCodes
 import spray.routing._
@@ -18,6 +21,7 @@ class RestInterface extends HttpServiceActor
 trait RestApi extends HttpService with ActorLogging {
   actor: Actor =>
 
+  import com.bbva.mike.HealthCheckProtocol._
   import com.bbva.mike.KafkaProducerProtocol._
   import spray.http.MediaTypes
   import spray.httpx.SprayJsonSupport._
@@ -25,17 +29,33 @@ trait RestApi extends HttpService with ActorLogging {
   def routes: Route =
 
     pathPrefix("mikeApi") {
-      path("structuredLog") {
-        respondWithMediaType(MediaTypes.`application/json`) {
-          post {
-            /*entity(as[Sender]) { sender => requestContext =>
-              val responder = createResponder(requestContext)
-              sendMessageToKafka(sender) match {
-                case true => sender ! SenderResponseOK
-                case _ => sender ! SenderResponseKO
+      pathPrefix("_healthcheck") {
+        pathEnd {
+          respondWithMediaType(MediaTypes.`application/json`) {
+            get {
+              complete(HealthData("MIKE API STATUS", getCurrentHour))
+            }
+          }
+        }
+      } ~
+      pathPrefix("log") {
+        pathPrefix("structured") {
+          pathEnd {
+            respondWithMediaType(MediaTypes.`application/json`) {
+              post {
+                /*entity(as[Sender]) { sender => requestContext =>
+                val responder = createResponder(requestContext)
+                sendMessageToKafka(sender) match {
+                  case true => sender ! SenderResponseOK
+                  case _ => sender ! SenderResponseKO
+                }
+              }*/
+                //complete(Sender("eltopic", "elmensaje"))
+                entity(as[Sender]) { sender =>
+                  complete(Sender(sender.topicName, sender.messageValue))
+                }
               }
-            }*/
-            complete(Sender("eltopic", "elmensaje"))
+            }
           }
         }
 
@@ -54,6 +74,12 @@ trait RestApi extends HttpService with ActorLogging {
   private def sendMessageToKafka(sender: Sender): Boolean = {
     val result = true
     result
+  }
+
+  private def getCurrentHour: String = {
+    val today = Calendar.getInstance().getTime()
+    val dateFormat = new SimpleDateFormat("dd-M-yyyy hh:mm:ss")
+    return dateFormat.format(today)
   }
 
 
