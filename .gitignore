@@ -20,7 +20,7 @@ project/plugins/project/
 ###########################
 # IntelliJ Metadata Files
 ###########################
-.idea
-target
+.idea/
+.idea_modules/
 *.iml
 
