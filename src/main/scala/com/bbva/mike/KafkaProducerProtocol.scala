@@ -7,6 +7,8 @@ object KafkaProducerProtocol {
 
   import spray.json._
 
+  case class StructuredLog(messageValue: String)
+
   case class Sender(topicName: String, messageValue: String)
 
   case object SenderResponseOK
@@ -15,6 +17,10 @@ object KafkaProducerProtocol {
 
 
   /* json (un)marshalling */
+
+  object StructuredLog extends DefaultJsonProtocol {
+    implicit val format = jsonFormat1(StructuredLog.apply)
+  }
 
   object Sender extends DefaultJsonProtocol {
     implicit val format = jsonFormat2(Sender.apply)

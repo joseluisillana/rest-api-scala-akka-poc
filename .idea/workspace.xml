@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="99d401b2-c677-4413-9e42-e18a15249a92" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/scala/com/bbva/mike/KafkaProducerProtocol.scala" afterPath="$PROJECT_DIR$/src/main/scala/com/bbva/mike/KafkaProducerProtocol.scala" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/scala/com/bbva/mike/RestInterface.scala" afterPath="$PROJECT_DIR$/src/main/scala/com/bbva/mike/RestInterface.scala" />
     </list>
     <ignored path="rest-api-scala-akka-poc.iws" />
@@ -44,7 +44,7 @@
         <entry file="file://$PROJECT_DIR$/src/main/scala/com/bbva/mike/KafkaProducerProtocol.scala">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="9" column="48" selection-start-line="9" selection-start-column="48" selection-end-line="9" selection-end-column="48" />
+              <caret line="9" column="26" selection-start-line="9" selection-start-column="13" selection-end-line="9" selection-end-column="26" />
               <folding />
             </state>
           </provider>
@@ -53,11 +53,11 @@
       <file leaf-file-name="RestInterface.scala" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/scala/com/bbva/mike/RestInterface.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.64893615">
-              <caret line="59" column="9" selection-start-line="59" selection-start-column="9" selection-end-line="59" selection-end-column="9" />
+            <state vertical-scroll-proportion="0.68297875">
+              <caret line="55" column="60" selection-start-line="55" selection-start-column="60" selection-end-line="55" selection-end-column="60" />
               <folding>
                 <element signature="e#23#56#0" expanded="true" />
-                <element signature="e#420#462#0" expanded="true" />
+                <element signature="e#477#519#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -105,8 +105,8 @@
         <option value="$PROJECT_DIR$/src/main/resources/logback.xml" />
         <option value="$PROJECT_DIR$/src/main/scala/com/bbva/mike/Main.scala" />
         <option value="$PROJECT_DIR$/src/main/scala/com/bbva/mike/QuizProtocol.scala" />
-        <option value="$PROJECT_DIR$/src/main/scala/com/bbva/mike/KafkaProducerProtocol.scala" />
         <option value="$PROJECT_DIR$/src/main/scala/com/bbva/mike/HealthCheckProtocol.scala" />
+        <option value="$PROJECT_DIR$/src/main/scala/com/bbva/mike/KafkaProducerProtocol.scala" />
         <option value="$PROJECT_DIR$/src/main/scala/com/bbva/mike/RestInterface.scala" />
       </list>
     </option>
@@ -718,14 +718,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/scala/com/bbva/mike/KafkaProducerProtocol.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="9" column="48" selection-start-line="9" selection-start-column="48" selection-end-line="9" selection-end-column="48" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/scala/com/bbva/mike/HealthCheckProtocol.scala">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -744,13 +736,21 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/scala/com/bbva/mike/KafkaProducerProtocol.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="9" column="26" selection-start-line="9" selection-start-column="13" selection-end-line="9" selection-end-column="26" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/scala/com/bbva/mike/RestInterface.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.64893615">
-          <caret line="59" column="9" selection-start-line="59" selection-start-column="9" selection-end-line="59" selection-end-column="9" />
+        <state vertical-scroll-proportion="0.68297875">
+          <caret line="55" column="60" selection-start-line="55" selection-start-column="60" selection-end-line="55" selection-end-column="60" />
           <folding>
             <element signature="e#23#56#0" expanded="true" />
-            <element signature="e#420#462#0" expanded="true" />
+            <element signature="e#477#519#0" expanded="true" />
           </folding>
         </state>
       </provider>
