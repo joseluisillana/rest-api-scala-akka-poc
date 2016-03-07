@@ -1,12 +1,9 @@
 package com.bbva.mike
 
 import akka.actor._
-import akka.util.Timeout
 import spray.http.StatusCodes
-import spray.httpx.SprayJsonSupport._
 import spray.routing._
 
-import scala.concurrent.duration._
 import scala.language.postfixOps
 
 /**
@@ -21,128 +18,58 @@ class RestInterface extends HttpServiceActor
 trait RestApi extends HttpService with ActorLogging {
   actor: Actor =>
 
-  import com.bbva.mike.QuizProtocol._
-
-  implicit val timeout = Timeout(10 seconds)
-
-  var quizzes = Vector[Quiz]()
+  import com.bbva.mike.KafkaProducerProtocol._
+  import spray.http.MediaTypes
+  import spray.httpx.SprayJsonSupport._
 
   def routes: Route =
 
-    pathPrefix("quizzes") {
-      pathEnd {
-        post {
-          entity(as[Quiz]) { quiz => requestContext =>
-            val responder = createResponder(requestContext)
-            createQuiz(quiz) match {
-              case true => responder ! QuizCreated
-              case _ => responder ! QuizAlreadyExists
-            }
-          }
-        }
-      } ~
-        path(Segment) { id =>
-          delete { requestContext =>
-            val responder = createResponder(requestContext)
-            deleteQuiz(id)
-            responder ! QuizDeleted
-          }
-        }
-    } ~
-      pathPrefix("questions") {
-        pathEnd {
-          get { requestContext =>
-            val responder = createResponder(requestContext)
-            getRandomQuestion.map(responder ! _)
-              .getOrElse(responder ! QuestionNotFound)
-          }
-        } ~
-          path(Segment) { id =>
-            get { requestContext =>
+    pathPrefix("mikeApi") {
+      path("structuredLog") {
+        respondWithMediaType(MediaTypes.`application/json`) {
+          post {
+            /*entity(as[Sender]) { sender => requestContext =>
               val responder = createResponder(requestContext)
-              getQuestion(id).map(responder ! _)
-                .getOrElse(responder ! QuestionNotFound)
-            } ~
-              put {
-                entity(as[Answer]) { answer => requestContext =>
-                  val responder = createResponder(requestContext)
-                  isAnswerCorrect(id, answer) match {
-                    case true => responder ! CorrectAnswer
-                    case _ => responder ! WrongAnswer
-                  }
-                }
+              sendMessageToKafka(sender) match {
+                case true => sender ! SenderResponseOK
+                case _ => sender ! SenderResponseKO
               }
+            }*/
+            complete(Sender("eltopic", "elmensaje"))
           }
+        }
+
+        /*
+        System.out.println(topic)
+        requestContext.complete(StatusCodes.BadGateway)
+        */
       }
+    }
+
 
   private def createResponder(requestContext: RequestContext) = {
     context.actorOf(Props(new Responder(requestContext)))
   }
 
-  private def createQuiz(quiz: Quiz): Boolean = {
-    val doesNotExist = !quizzes.exists(_.id == quiz.id)
-    if (doesNotExist) quizzes = quizzes :+ quiz
-    doesNotExist
+  private def sendMessageToKafka(sender: Sender): Boolean = {
+    val result = true
+    result
   }
 
-  private def deleteQuiz(id: String): Unit = {
-    quizzes = quizzes.filterNot(_.id == id)
-  }
 
-  private def getRandomQuestion: Option[Question] = {
-    !quizzes.isEmpty match {
-      case true =>
-        import scala.util.Random
-        val idx = (new Random).nextInt(quizzes.size)
-        Some(quizzes(idx))
-      case _ => None
-    }
-  }
-
-  private def getQuestion(id: String): Option[Question] = {
-    getQuiz(id).map(toQuestion)
-  }
-
-  private def getQuiz(id: String): Option[Quiz] = {
-    quizzes.find(_.id == id)
-  }
-
-  private def isAnswerCorrect(id: String, proposedAnswer: Answer): Boolean = {
-    getQuiz(id).exists(_.correctAnswer == proposedAnswer.answer)
-  }
 }
 
 class Responder(requestContext: RequestContext) extends Actor with ActorLogging {
-  import com.bbva.mike.QuizProtocol._
+
+  import com.bbva.mike.KafkaProducerProtocol._
 
   def receive = {
 
-    case QuizCreated =>
-      requestContext.complete(StatusCodes.Created)
+    case SenderResponseOK =>
+      requestContext.complete(StatusCodes.NoContent)
       killYourself
-
-    case QuizDeleted =>
-      requestContext.complete(StatusCodes.OK)
-      killYourself
-
-    case QuizAlreadyExists =>
-      requestContext.complete(StatusCodes.Conflict)
-      killYourself
-
-    case question: Question =>
-      requestContext.complete(StatusCodes.OK, question)
-      killYourself
-
-    case QuestionNotFound =>
-      requestContext.complete(StatusCodes.NotFound)
-      killYourself
-
-    case CorrectAnswer =>
-      requestContext.complete(StatusCodes.OK)
-      killYourself
-
-    case WrongAnswer =>
-      requestContext.complete(StatusCodes.NotFound)
+    case SenderResponseKO =>
+      requestContext.complete(StatusCodes.BadGateway)
       killYourself
   }
 
